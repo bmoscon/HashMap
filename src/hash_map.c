@@ -46,7 +46,6 @@
 
 #include <assert.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "hash_map.h"
 
@@ -109,7 +108,6 @@ void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
     memcpy(map->array[index].key, key, k);
     map->array[index].value = malloc(v);
     memcpy(map->array[index].value, val, v);
-    printf("inserted value of size %d - %s\n", (int)v, (char *)val);
   } else {
     if (map->array[index].hash == hash) {
       // no duplicates allowed
