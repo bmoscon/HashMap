@@ -73,22 +73,22 @@ int main()
   char *b = "nimbus is a grey cat";
   char *z = "does not exist";
   
-  hash_map_st *map = hash_map_init(50, chksum);
-  hash_map_insert(map, k1, strlen(k1), a, strlen(a));
-  hash_map_insert(map, k1, strlen(k1), a, strlen(a));
-  hash_map_insert(map, &k2, sizeof(k2), b, strlen(b));
-  printf("does \"%s\" exist: %d\n", k1, hash_map_exists(map, k1));
-  printf("does \"%s\" exist: %d\n", z, hash_map_exists(map, z));
+  hash_map_st *map = hm_init(50, chksum);
+  hm_insert(map, k1, strlen(k1), a, strlen(a));
+  hm_insert(map, k1, strlen(k1), a, strlen(a));
+  hm_insert(map, &k2, sizeof(k2), b, strlen(b));
+  printf("does \"%s\" exist: %d\n", k1, hm_exists(map, k1));
+  printf("does \"%s\" exist: %d\n", z, hm_exists(map, z));
   
   printf("total entries: %d, total overflows: %d\n", map->entries, map->overflow);
 
-  printf("key->value pair from table: %d->%s\n", k2, (char *)hash_map_get_value(map, &k2));
+  printf("key->value pair from table: %d->%s\n", k2, (char *)hm_get_value(map, &k2));
 
-  hash_map_clear(map);
+  hm_clear(map);
 
-  printf("clearing hashmap and testing for %s->\"%s\": %d\n", k1, a, hash_map_exists(map, k1));
+  printf("clearing hashmap and testing for %s->\"%s\": %d\n", k1, a, hm_exists(map, k1));
   
-  hash_map_free(map);
+  hm_free(map);
   
   return 0;
 }

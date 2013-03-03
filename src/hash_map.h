@@ -68,12 +68,13 @@ typedef struct hash_map_st {
 } hash_map_st;
 
 
-hash_map_st* hash_map_init(size_t size, uint32_t (*hash_fp)(void *));
-void hash_map_free(hash_map_st *map);
-int hash_map_exists(hash_map_st *map, void *key);
-void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v);
-void hash_map_clear(hash_map_st *map);
-void *hash_map_get_value(hash_map_st *map, void *key);
+hash_map_st* hm_init(size_t size, uint32_t (*hash_fp)(void *));
+void hm_free(hash_map_st *map);
+int hm_exists(const hash_map_st *map, void *key);
+void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v);
+void hm_clear(hash_map_st *map);
+void *hm_get_value(const hash_map_st *map, void *key);
+
 
 
 

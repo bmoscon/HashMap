@@ -46,29 +46,33 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
+#include <assert.h>
 
 #include "hash_map.h"
 
 
-hash_map_st* hash_map_init(size_t size, uint32_t (*hash_fp)(void *)) 
+hash_map_st* hm_init(size_t size, uint32_t (*hash_fp)(void *)) 
 {
   hash_map_st *ret = NULL;
 
   assert(size > 0);
 
   ret = (hash_map_st *)malloc(sizeof(hash_map_st));
-  
+  assert(ret);
+
   ret->entries = 0;
   ret->overflow = 0;
   ret->hash_fp = hash_fp;
   ret->len = size;
   ret->array = calloc(size, sizeof(bucket_st));
+  assert(ret->array);
 
   return (ret);
 }
 
 
-void hash_map_free(hash_map_st *map)
+void hm_free(hash_map_st *map)
 {
   bucket_st *next = NULL;
   size_t i;
@@ -93,7 +97,7 @@ void hash_map_free(hash_map_st *map)
   free(map);
 }
 
-void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
+void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
 {
   uint32_t hash;
   uint32_t index;
@@ -105,8 +109,10 @@ void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
   if (!map->array[index].hash) {
     map->array[index].hash = hash;
     map->array[index].key = malloc(k);
+    assert(map->array[index].key);
     memcpy(map->array[index].key, key, k);
     map->array[index].value = malloc(v);
+    assert(map->array[index].value);
     memcpy(map->array[index].value, val, v);
   } else {
     if (map->array[index].hash == hash) {
@@ -116,11 +122,14 @@ void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
     
     if (map->array[index].next == NULL) {
       map->array[index].next = malloc(sizeof(bucket_st));
+      assert(map->array[index].next);
       map->array[index].next->hash = hash;
       map->array[index].next->next = NULL;
       map->array[index].next->key = malloc(k);
+      assert(map->array[index].next->key);
       memcpy(map->array[index].next->key, key, k);
       map->array[index].next->value = malloc(v);
+      assert(map->array[index].next->value);
       memcpy(map->array[index].next->value, val, v);
       ++map->overflow;
     } else {
@@ -141,10 +150,13 @@ void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
       }
       
       b->next = malloc(sizeof(bucket_st));
+      assert(b->next);
       b->next->hash = hash;
       b->next->key = malloc(k);
+      assert(b->next->key);
       memcpy(b->next->key, key, k);
       b->next->value = malloc(v);
+      assert(b->next->value);
       memcpy(b->next->value, val, v);
       b->next->next = NULL;
       ++map->overflow;
@@ -153,7 +165,7 @@ void hash_map_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
   ++map->entries;
 }
 
-int hash_map_exists(hash_map_st *map, void *key)
+int hm_exists(const hash_map_st *map, void *key)
 {
   uint32_t hash;
   uint32_t index;
@@ -173,7 +185,7 @@ int hash_map_exists(hash_map_st *map, void *key)
   return (0);
 }
 
-void hash_map_clear(hash_map_st *map)
+void hm_clear(hash_map_st *map)
 {
   bucket_st *next = NULL;
   size_t i;
@@ -203,7 +215,7 @@ void hash_map_clear(hash_map_st *map)
 }
 
 
-void *hash_map_get_value(hash_map_st *map, void *key)
+void *hm_get_value(const hash_map_st *map, void *key)
 {
   uint32_t hash;
   uint32_t index;
@@ -223,3 +235,4 @@ void *hash_map_get_value(hash_map_st *map, void *key)
   
   return (NULL);
 }
+
