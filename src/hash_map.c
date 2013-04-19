@@ -114,10 +114,15 @@ void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
     map->array[index].value = malloc(v);
     assert(map->array[index].value);
     memcpy(map->array[index].value, val, v);
+    map->array[index].key_size = k;
   } else {
     if (map->array[index].hash == hash) {
-      // no duplicates allowed
-      return;
+      if (map->array[index].key_size == k) {
+	if (memcmp(map->array[index].key, key, k) == 0) {
+	  // no duplicates allowed
+	  return;
+	}
+      }
     }
     
     if (map->array[index].next == NULL) {
@@ -137,16 +142,24 @@ void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
       
       while (b->next) {
 	if (b->hash == hash) {
-	  // no duplicates allowed
-	  return;
+	  if (b->key_size == k) {
+	    if (memcmp(b->key, key, k) == 0) {
+	      // no duplicates allowed
+	      return;
+	    }
+	  }
 	}
 	
 	b = b->next;
       }
 
       if (b->hash == hash) {
-	// no duplicates allowed
-	return;
+	if (b->key_size == k) {
+	  if (memcmp(b->key, key, k) == 0) {
+	    // no duplicates allowed
+	    return;
+	  }
+	}
       }
       
       b->next = malloc(sizeof(bucket_st));
@@ -165,7 +178,7 @@ void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
   ++map->entries;
 }
 
-int hm_exists(const hash_map_st *map, void *key)
+int hm_exists(const hash_map_st *map, void *key, size_t size)
 {
   uint32_t hash;
   uint32_t index;
@@ -177,7 +190,11 @@ int hm_exists(const hash_map_st *map, void *key)
   
   while (b) {
     if (b->hash == hash) {
-      return (1);
+      if (b->key_size == size) {
+	if (memcmp(b->key, key, size)) {
+	  return (1);
+	}
+      }
     }
     b = b->next;
   }
@@ -215,7 +232,7 @@ void hm_clear(hash_map_st *map)
 }
 
 
-void *hm_get_value(const hash_map_st *map, void *key)
+void *hm_get_value(const hash_map_st *map, void *key, size_t size)
 {
   uint32_t hash;
   uint32_t index;
@@ -228,7 +245,11 @@ void *hm_get_value(const hash_map_st *map, void *key)
   
   while (b) {
     if (b->hash == hash) {
-      return (b->value);
+      if (b->key_size == size) {
+	if (memcmp(b->key, key, size) == 0) {
+	  return (b->value);
+	}
+      }
     }
     b = b->next;
   }

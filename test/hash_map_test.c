@@ -77,16 +77,16 @@ int main()
   hm_insert(map, k1, strlen(k1), a, strlen(a));
   hm_insert(map, k1, strlen(k1), a, strlen(a));
   hm_insert(map, &k2, sizeof(k2), b, strlen(b));
-  printf("does \"%s\" exist: %d\n", k1, hm_exists(map, k1));
-  printf("does \"%s\" exist: %d\n", z, hm_exists(map, z));
+  printf("does \"%s\" exist: %d\n", k1, hm_exists(map, k1, strlen(k1)));
+  printf("does \"%s\" exist: %d\n", z, hm_exists(map, z, strlen(z)));
   
   printf("total entries: %d, total overflows: %d\n", map->entries, map->overflow);
 
-  printf("key->value pair from table: %d->%s\n", k2, (char *)hm_get_value(map, &k2));
+  printf("key->value pair from table: %d->%s\n", k2, (char *)hm_get_value(map, &k2, sizeof(k2)));
 
   hm_clear(map);
 
-  printf("clearing hashmap and testing for %s->\"%s\": %d\n", k1, a, hm_exists(map, k1));
+  printf("clearing hashmap and testing for %s->\"%s\": %d\n", k1, a, hm_exists(map, k1, strlen(k1)));
   
   hm_free(map);
   

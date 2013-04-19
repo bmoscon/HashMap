@@ -55,6 +55,7 @@ typedef struct bucket_st {
   uint32_t hash;
   void *key;
   void *value;
+  size_t key_size;
   struct bucket_st *next;
 } bucket_st;
 
@@ -70,10 +71,10 @@ typedef struct hash_map_st {
 
 hash_map_st* hm_init(size_t size, uint32_t (*hash_fp)(void *));
 void hm_free(hash_map_st *map);
-int hm_exists(const hash_map_st *map, void *key);
+int hm_exists(const hash_map_st *map, void *key, size_t size);
 void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v);
 void hm_clear(hash_map_st *map);
-void *hm_get_value(const hash_map_st *map, void *key);
+void *hm_get_value(const hash_map_st *map, void *key, size_t size);
 
 
 
