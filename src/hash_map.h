@@ -68,11 +68,23 @@ typedef struct hash_map_st {
   bucket_st *array;
 } hash_map_st;
 
+enum hash_map_return {
+  ERROR = 0,
+  OK = 1,
+  DUPLICATE,
+  END
+};
+
+enum bool {
+  FALSE = 0,
+  TRUE = 1
+};
+
 
 hash_map_st* hm_init(size_t size, uint32_t (*hash_fp)(void *));
 void hm_free(hash_map_st *map);
 int hm_exists(const hash_map_st *map, void *key, size_t size);
-void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v);
+int hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v);
 void hm_clear(hash_map_st *map);
 void *hm_get_value(const hash_map_st *map, void *key, size_t size);
 

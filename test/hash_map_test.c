@@ -46,10 +46,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "../src/hash_map.h"
 
+//#define MAP_LEN 503
+//#define MAP_SIZE 70000
 
+
+#define MAP_LEN 2
+#define MAP_SIZE 2
 
 uint32_t chksum(void *str) 
 {
@@ -66,29 +72,25 @@ uint32_t chksum(void *str)
 }
 
 int main()
-{
-  char *k1 = "123";
-  int k2 = 456;
-  char *a = "meow meow";
-  char *b = "nimbus is a grey cat";
-  char *z = "does not exist";
+{ 
+  int i;
+  hash_map_st *map = hm_init(MAP_LEN, chksum);
   
-  hash_map_st *map = hm_init(50, chksum);
-  hm_insert(map, k1, strlen(k1), a, strlen(a));
-  hm_insert(map, k1, strlen(k1), a, strlen(a));
-  hm_insert(map, &k2, sizeof(k2), b, strlen(b));
-  printf("does \"%s\" exist: %d\n", k1, hm_exists(map, k1, strlen(k1)));
-  printf("does \"%s\" exist: %d\n", z, hm_exists(map, z, strlen(z)));
+  printf("verifying inserts with overflow...\n");
+  for(i = 0; i < MAP_SIZE; ++i) {
+    char key[10];
+    snprintf(key, 10, "%d", i);
+    assert(hm_insert(map, key, strlen(key), &i, sizeof(int)));
+  }
   
-  printf("total entries: %d, total overflows: %d\n", map->entries, map->overflow);
-
-  printf("key->value pair from table: %d->%s\n", k2, (char *)hm_get_value(map, &k2, sizeof(k2)));
-
-  hm_clear(map);
-
-  printf("clearing hashmap and testing for %s->\"%s\": %d\n", k1, a, hm_exists(map, k1, strlen(k1)));
+  printf("verifying duplicate inserts fail...\n");
+  for(i = 0; i < MAP_SIZE; ++i) {
+    char key[10];
+    snprintf(key, 10, "%d", i);
+    assert(hm_insert(map, key, strlen(key), &i, sizeof(int)) == DUPLICATE);
+  }
   
-  hm_free(map);
   
-  return 0;
+  hm_free(map);  
+  return (0);
 }

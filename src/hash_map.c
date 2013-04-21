@@ -46,7 +46,6 @@
 
 #include <assert.h>
 #include <string.h>
-#include <stdio.h>
 #include <assert.h>
 
 #include "hash_map.h"
@@ -97,15 +96,18 @@ void hm_free(hash_map_st *map)
   free(map);
 }
 
-void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
+int hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
 {
   uint32_t hash;
   uint32_t index;
   
+  if (hm_exists(map, key, k)) {
+    return (DUPLICATE);
+  }
 
   hash = map->hash_fp(key);
   index = hash % map->len;
-
+  
   if (!map->array[index].hash) {
     map->array[index].hash = hash;
     map->array[index].key = malloc(k);
@@ -116,15 +118,6 @@ void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
     memcpy(map->array[index].value, val, v);
     map->array[index].key_size = k;
   } else {
-    if (map->array[index].hash == hash) {
-      if (map->array[index].key_size == k) {
-	if (memcmp(map->array[index].key, key, k) == 0) {
-	  // no duplicates allowed
-	  return;
-	}
-      }
-    }
-    
     if (map->array[index].next == NULL) {
       map->array[index].next = malloc(sizeof(bucket_st));
       assert(map->array[index].next);
@@ -136,30 +129,13 @@ void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
       map->array[index].next->value = malloc(v);
       assert(map->array[index].next->value);
       memcpy(map->array[index].next->value, val, v);
+      map->array[index].next->key_size = k;
       ++map->overflow;
     } else {
       bucket_st *b = map->array[index].next;
       
       while (b->next) {
-	if (b->hash == hash) {
-	  if (b->key_size == k) {
-	    if (memcmp(b->key, key, k) == 0) {
-	      // no duplicates allowed
-	      return;
-	    }
-	  }
-	}
-	
 	b = b->next;
-      }
-
-      if (b->hash == hash) {
-	if (b->key_size == k) {
-	  if (memcmp(b->key, key, k) == 0) {
-	    // no duplicates allowed
-	    return;
-	  }
-	}
       }
       
       b->next = malloc(sizeof(bucket_st));
@@ -172,10 +148,12 @@ void hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
       assert(b->next->value);
       memcpy(b->next->value, val, v);
       b->next->next = NULL;
+      b->next->key_size = k;
       ++map->overflow;
     }
   }
   ++map->entries;
+  return (OK);
 }
 
 int hm_exists(const hash_map_st *map, void *key, size_t size)
@@ -187,19 +165,19 @@ int hm_exists(const hash_map_st *map, void *key, size_t size)
   index = hash % map->len;
   
   b = &(map->array[index]);
-  
-  while (b) {
+
+  while (b && b->key) {
     if (b->hash == hash) {
       if (b->key_size == size) {
-	if (memcmp(b->key, key, size)) {
-	  return (1);
+	if (memcmp(b->key, key, size) == 0) {
+	  return (TRUE);
 	}
       }
     }
     b = b->next;
   }
   
-  return (0);
+  return (FALSE);
 }
 
 void hm_clear(hash_map_st *map)
@@ -243,7 +221,7 @@ void *hm_get_value(const hash_map_st *map, void *key, size_t size)
   
   b = &(map->array[index]);
   
-  while (b) {
+  while (b && b->key) {
     if (b->hash == hash) {
       if (b->key_size == size) {
 	if (memcmp(b->key, key, size) == 0) {
