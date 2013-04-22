@@ -54,8 +54,8 @@
 //#define MAP_SIZE 70000
 
 
-#define MAP_LEN 2
-#define MAP_SIZE 2
+#define MAP_LEN 503
+#define MAP_SIZE 70000
 
 uint32_t chksum(void *str) 
 {
@@ -90,7 +90,24 @@ int main()
     assert(hm_insert(map, key, strlen(key), &i, sizeof(int)) == DUPLICATE);
   }
   
+  printf("verifying data structure integrity...\n");
+  assert(map->len == MAP_LEN);
+  if (MAP_SIZE > MAP_LEN) {
+    assert(map->overflow >= MAP_SIZE - MAP_LEN);
+  }
+  assert(map->entries == MAP_SIZE);
   
+  printf("verifying key->value pairs exist...\n");
+  for(i = 0; i < MAP_SIZE; ++i) {
+    char key[10];
+    snprintf(key, 10, "%d", i);
+    assert(hm_exists(map, key, strlen(key)));
+    assert(*(int *)hm_get_value(map, key, strlen(key)) == i);
+  }
+
+
   hm_free(map);  
+
+  printf("\n-------- PASS --------\n");
   return (0);
 }
