@@ -235,9 +235,37 @@ void *hm_get_value(const hash_map_st *map, const void *key, const size_t size)
   return (NULL);
 }
 
+hm_pair_st* hm_dump(const hash_map_st *map)
+{
+  int map_index;
+  int array_index = 0;
+  bucket_st *b;
+  hm_pair_st *array = malloc(sizeof(hm_pair_st) * map->entries);
+  assert(array);
+
+  for (map_index = 0; map_index < map->len; ++map_index) {
+    b = &(map->array[map_index]);
+    
+    while (b && b->value) {
+      array[array_index].key = b->key;
+      array[array_index++].value = b->value;
+      
+      b = b->next;
+    } 
+  }
+  
+  return (array);
+}
+
+
+void hm_dump_free(hm_pair_st *dump)
+{
+  free(dump);
+}
+
+
 
 // iterator functions
-
 
 hash_map_it* hm_it_init(const hash_map_st *map)
 {

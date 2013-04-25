@@ -76,6 +76,7 @@ int main()
   int i;
   hash_map_st *map = hm_init(MAP_LEN, chksum);
   hash_map_it *it = NULL;
+  hm_pair_st *dump;
   
   printf("verifying inserts with overflow...\n");
   for(i = 0; i < MAP_SIZE; ++i) {
@@ -106,6 +107,13 @@ int main()
     assert(*(int *)hm_get_value(map, key, strlen(key)) == i);
   }
 
+  printf("verifying non-present keys fail existence test...\n");
+  for(i = MAP_SIZE; i < MAP_SIZE*10; ++i) {
+    char key[10];
+    snprintf(key, 10, "%d", i);
+    assert(hm_exists(map, key, strlen(key)) == FALSE);
+  }
+  
   printf("iterator test...\n");
   it = hm_it_init(map);
   assert(it);
@@ -118,6 +126,20 @@ int main()
     assert(hm_it_next(it) == OK);
   }
 
+  hm_it_free(it);
+  it = hm_it_init(map);
+  assert(it);
+  
+  dump = hm_dump(map);
+  
+  printf("verifying iterator values...\n");
+  for (i = 0; i < MAP_SIZE; ++i) {
+    assert(*(int *)hm_it_value(it) == *(int *)dump[i].value);
+    assert(strcmp(hm_it_key(it), dump[i].key) == 0);
+    hm_it_next(it);
+  }
+  
+  hm_dump_free(dump);
   hm_it_free(it);
   hm_free(map);  
 

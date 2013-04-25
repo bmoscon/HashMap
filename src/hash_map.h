@@ -74,6 +74,11 @@ typedef struct hash_map_it {
   const hash_map_st* map;
 } hash_map_it;
 
+typedef struct hm_pair_st {
+  const void *key;
+  void *value;
+} hm_pair_st;
+
 enum hash_map_return {
   ERROR = 0,
   OK = 1,
@@ -87,12 +92,15 @@ enum bool {
 };
 
 
+
 hash_map_st* hm_init(const size_t size, uint32_t (* const hash_fp)(const void *));
 void hm_free(hash_map_st *map);
 int hm_exists(const hash_map_st *map, const void *key, const size_t size);
 int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val, const size_t v);
 void hm_clear(hash_map_st *map);
-void *hm_get_value(const hash_map_st *map, const void *key, const size_t size);
+void* hm_get_value(const hash_map_st *map, const void *key, const size_t size);
+hm_pair_st* hm_dump(const hash_map_st *map);
+void hm_dump_free(hm_pair_st *dump);
 
 // iterator functions
 
