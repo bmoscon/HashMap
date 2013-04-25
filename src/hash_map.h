@@ -64,9 +64,15 @@ typedef struct hash_map_st {
   uint32_t entries;
   uint32_t overflow;
   size_t len;
-  uint32_t (*hash_fp)(void *);
+  uint32_t (*hash_fp)(const void *);
   bucket_st *array;
 } hash_map_st;
+
+typedef struct hash_map_it {
+  uint32_t index;
+  bucket_st *current;
+  const hash_map_st* set;
+} hash_map_it;
 
 enum hash_map_return {
   ERROR = 0,
@@ -81,12 +87,15 @@ enum bool {
 };
 
 
-hash_map_st* hm_init(size_t size, uint32_t (*hash_fp)(void *));
+hash_map_st* hm_init(const size_t size, uint32_t (* const hash_fp)(const void *));
 void hm_free(hash_map_st *map);
-int hm_exists(const hash_map_st *map, void *key, size_t size);
-int hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v);
+int hm_exists(const hash_map_st *map, const void *key, const size_t size);
+int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val, const size_t v);
 void hm_clear(hash_map_st *map);
-void *hm_get_value(const hash_map_st *map, void *key, size_t size);
+void *hm_get_value(const hash_map_st *map, const void *key, const size_t size);
+
+// iterator functions
+
 
 
 

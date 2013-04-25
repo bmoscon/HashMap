@@ -51,7 +51,7 @@
 #include "hash_map.h"
 
 
-hash_map_st* hm_init(size_t size, uint32_t (*hash_fp)(void *)) 
+hash_map_st* hm_init(const size_t size, uint32_t (* const hash_fp)(const void *)) 
 {
   hash_map_st *ret = NULL;
 
@@ -96,7 +96,7 @@ void hm_free(hash_map_st *map)
   free(map);
 }
 
-int hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
+int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val, const size_t v)
 {
   uint32_t hash;
   uint32_t index;
@@ -156,7 +156,7 @@ int hm_insert(hash_map_st *map, void *key, size_t k, void *val, size_t v)
   return (OK);
 }
 
-int hm_exists(const hash_map_st *map, void *key, size_t size)
+int hm_exists(const hash_map_st *map, const void *key, const size_t size)
 {
   uint32_t hash;
   uint32_t index;
@@ -210,7 +210,7 @@ void hm_clear(hash_map_st *map)
 }
 
 
-void *hm_get_value(const hash_map_st *map, void *key, size_t size)
+void *hm_get_value(const hash_map_st *map, const void *key, const size_t size)
 {
   uint32_t hash;
   uint32_t index;
