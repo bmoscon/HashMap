@@ -235,3 +235,94 @@ void *hm_get_value(const hash_map_st *map, const void *key, const size_t size)
   return (NULL);
 }
 
+
+// iterator functions
+
+
+hash_map_it* hm_it_init(const hash_map_st *map)
+{
+  hash_map_it *ret;
+  uint32_t i;
+  bucket_st *b;
+  
+  if (!map) {
+    return (NULL);
+  }
+  
+  ret = malloc(sizeof(hash_map_it));
+  
+  assert(ret);
+
+  ret->index = 0;
+  ret->current = NULL;
+  ret->map = map;
+  
+  for(i = 0; i < map->len; ++i) {
+    b = &(map->array[i]);
+    if (b->key) {
+      ret->index = i;
+      ret->current = b;
+      break;
+    }
+  }
+  
+  if (ret->current == NULL) {
+    free(ret);
+    return (NULL);
+  }
+
+
+  return (ret);
+}
+
+void hm_it_free(hash_map_it *it)
+{
+  free(it);
+}
+
+int hm_it_next(hash_map_it *it)
+{
+  bucket_st *b;
+  uint32_t index;
+
+  // check if there are overflowed buckets in our current position in the array
+  if (it->current->next) {
+    it->current = it->current->next;
+    return (OK);
+  }
+
+  
+  // no more buckets in our current index, so increment index 
+  // and seach for non-empty bucket
+  index = it->index + 1;
+  if (index > it->map->len) {
+    return (END);
+  }
+  b = &(it->map->array[index]);
+  
+  while (!b->key) {
+    ++index;
+    if (index > it->map->len) {
+      return (END);
+    }
+    b = &(it->map->array[index]);
+  }
+  
+  it->current = b;
+  it->index = index;
+  
+  return (OK);
+}
+
+const void* hm_it_key(const hash_map_it *it)
+{
+  return (it->current->key);
+}
+
+
+void* hm_it_value(const hash_map_it *it)
+{
+  return (it->current->value);
+}
+
+

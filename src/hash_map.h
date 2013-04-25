@@ -70,8 +70,8 @@ typedef struct hash_map_st {
 
 typedef struct hash_map_it {
   uint32_t index;
-  bucket_st *current;
-  const hash_map_st* set;
+  const bucket_st *current;
+  const hash_map_st* map;
 } hash_map_it;
 
 enum hash_map_return {
@@ -96,8 +96,11 @@ void *hm_get_value(const hash_map_st *map, const void *key, const size_t size);
 
 // iterator functions
 
-
-
+hash_map_it* hm_it_init(const hash_map_st *map);
+void hm_it_free(hash_map_it *it);
+int hm_it_next(hash_map_it *it);
+const void* hm_it_key(const hash_map_it *it);
+void* hm_it_value(const hash_map_it *it);
 
 
 

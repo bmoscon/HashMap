@@ -75,6 +75,7 @@ int main()
 { 
   int i;
   hash_map_st *map = hm_init(MAP_LEN, chksum);
+  hash_map_it *it = NULL;
   
   printf("verifying inserts with overflow...\n");
   for(i = 0; i < MAP_SIZE; ++i) {
@@ -105,7 +106,19 @@ int main()
     assert(*(int *)hm_get_value(map, key, strlen(key)) == i);
   }
 
+  printf("iterator test...\n");
+  it = hm_it_init(map);
+  assert(it);
 
+  // start at 1 beause init'ing the iterator 
+  // gives us the first value, so we only have N-1 to test
+  for (i = 1; i < MAP_SIZE; ++i) {
+    assert(*(int *)hm_it_value(it) < MAP_SIZE);
+    assert(atoi((const char *)hm_it_key(it)) < MAP_SIZE);
+    assert(hm_it_next(it) == OK);
+  }
+
+  hm_it_free(it);
   hm_free(map);  
 
   printf("\n-------- PASS --------\n");
