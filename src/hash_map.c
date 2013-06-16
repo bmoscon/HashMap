@@ -50,12 +50,12 @@
 
 #include "hash_map.h"
 
+#define BASE_SIZE 1024
 
-hash_map_st* hm_init(const size_t size, uint32_t (* const hash_fp)(const void *)) 
+
+hash_map_st* hm_init(uint32_t (* const hash_fp)(const void *)) 
 {
   hash_map_st *ret = NULL;
-
-  assert(size > 0);
 
   ret = (hash_map_st *)malloc(sizeof(hash_map_st));
   assert(ret);
@@ -63,23 +63,19 @@ hash_map_st* hm_init(const size_t size, uint32_t (* const hash_fp)(const void *)
   ret->entries = 0;
   ret->overflow = 0;
   ret->hash_fp = hash_fp;
-  ret->len = size;
-  ret->array = calloc(size, sizeof(bucket_st));
+  ret->len = BASE_SIZE;
+  ret->array = calloc(ret->len, sizeof(bucket_st));
   assert(ret->array);
 
   return (ret);
 }
 
 
-void hm_free(hash_map_st *map)
+static void hm_free_array(hash_map_st *map)
 {
   bucket_st *next = NULL;
   size_t i;
   
-  if (!map) {
-    return;
-  }
-
   for (i = 0; i < map->len; ++i) {
     next = map->array[i].next;
     free(map->array[i].key);
@@ -93,8 +89,58 @@ void hm_free(hash_map_st *map)
     }
   }
   free(map->array);
+}
+
+
+void hm_free(hash_map_st *map)
+{ 
+  if (!map) {
+    return;
+  }
+
+  hm_free_array(map);
+  
   free(map);
 }
+
+
+static int hm_realloc(hash_map_st *map)
+{
+  // allocate new set
+  hash_map_st new_map;
+  
+  new_map.entries = 0;
+  new_map.overflow = 0;
+  new_map.hash_fp = map->hash_fp;
+  new_map.len = map->len * 2;
+  new_map.array = calloc(new_map.len, sizeof(bucket_st));
+  assert(new_map.array);
+  
+  // copy over old set
+  int index;
+  bucket_st *b;
+  
+  for (index = 0; index < map->len; ++index) {
+    b = &(map->array[index]);
+    
+    while (b && b->key) {
+      hm_insert(&new_map, b->key, b->key_size, b->value, b->value_size);
+      b = b->next;
+    } 
+  }
+  
+  // delete old array
+  hm_free_array(map);
+  
+  // set new fields
+  map->entries = new_map.entries;
+  map->overflow = new_map.overflow;
+  map->hash_fp = new_map.hash_fp;
+  map->len = new_map.len;
+  map->array = new_map.array;
+  return (OK);
+}
+
 
 int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val, const size_t v)
 {
@@ -105,10 +151,14 @@ int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val
     return (DUPLICATE);
   }
 
+  if ((map->entries - map->overflow) > (map->len * .75)) {
+    assert(hm_realloc(map) == OK);
+  }
+
   hash = map->hash_fp(key);
-  index = hash % map->len;
+  index = hash & (map->len - 1);
   
-  if (!map->array[index].hash) {
+  if (!map->array[index].key_size) {
     map->array[index].hash = hash;
     map->array[index].key = malloc(k);
     assert(map->array[index].key);
@@ -117,6 +167,7 @@ int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val
     assert(map->array[index].value);
     memcpy(map->array[index].value, val, v);
     map->array[index].key_size = k;
+    map->array[index].value_size = v;
   } else {
     if (map->array[index].next == NULL) {
       map->array[index].next = malloc(sizeof(bucket_st));
@@ -130,6 +181,7 @@ int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val
       assert(map->array[index].next->value);
       memcpy(map->array[index].next->value, val, v);
       map->array[index].next->key_size = k;
+      map->array[index].next->value_size = v;
       ++map->overflow;
     } else {
       bucket_st *b = map->array[index].next;
@@ -149,6 +201,7 @@ int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val
       memcpy(b->next->value, val, v);
       b->next->next = NULL;
       b->next->key_size = k;
+      b->next->value_size = v;
       ++map->overflow;
     }
   }
@@ -162,7 +215,7 @@ int hm_exists(const hash_map_st *map, const void *key, const size_t size)
   uint32_t index;
   bucket_st *b;
   hash = map->hash_fp(key);
-  index = hash % map->len;
+  index = hash & (map->len - 1);
   
   b = &(map->array[index]);
 
@@ -217,7 +270,7 @@ void *hm_get_value(const hash_map_st *map, const void *key, const size_t size)
   bucket_st *b;
 
   hash = map->hash_fp(key);
-  index = hash % map->len;
+  index = hash & (map->len - 1);
   
   b = &(map->array[index]);
   
@@ -246,7 +299,7 @@ hm_pair_st* hm_dump(const hash_map_st *map)
   for (map_index = 0; map_index < map->len; ++map_index) {
     b = &(map->array[map_index]);
     
-    while (b && b->value) {
+    while (b && b->key) {
       array[array_index].key = b->key;
       array[array_index++].value = b->value;
       

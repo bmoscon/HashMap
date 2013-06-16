@@ -50,39 +50,26 @@
 
 #include "../src/hash_map.h"
 
-//#define MAP_LEN 503
-//#define MAP_SIZE 70000
 
+#define MAP_SIZE 100000
 
-#define MAP_LEN 503
-#define MAP_SIZE 70000
-
-uint32_t chksum(const void *str) 
+uint32_t hash(const void *str) 
 {
-  char *s = (char *)str;
-  int len = strlen(s);
-  int i;
-  uint32_t c = 0;
-
-  for (i = 0; i < len; ++i) {
-    c = (c >> 1) + ((c & 1) << (32-1));
-    c += s[i];
-  }
-  return (c);
+  return atoi(str)/2;
 }
 
 int main()
 { 
   int i;
-  hash_map_st *map = hm_init(MAP_LEN, chksum);
+  hash_map_st *map = hm_init(hash);
   hash_map_it *it = NULL;
   hm_pair_st *dump;
-  
+
   printf("verifying inserts with overflow...\n");
   for(i = 0; i < MAP_SIZE; ++i) {
     char key[10];
     snprintf(key, 10, "%d", i);
-    assert(hm_insert(map, key, strlen(key), &i, sizeof(int)));
+    assert(hm_insert(map, key, strlen(key), &i, sizeof(int)) == OK);
   }
   
   printf("verifying duplicate inserts fail...\n");
@@ -93,10 +80,6 @@ int main()
   }
   
   printf("verifying data structure integrity...\n");
-  assert(map->len == MAP_LEN);
-  if (MAP_SIZE > MAP_LEN) {
-    assert(map->overflow >= MAP_SIZE - MAP_LEN);
-  }
   assert(map->entries == MAP_SIZE);
   
   printf("verifying key->value pairs exist...\n");
@@ -108,7 +91,7 @@ int main()
   }
 
   printf("verifying non-present keys fail existence test...\n");
-  for(i = MAP_SIZE; i < MAP_SIZE*10; ++i) {
+  for(i = MAP_SIZE; i < MAP_SIZE*5; ++i) {
     char key[10];
     snprintf(key, 10, "%d", i);
     assert(hm_exists(map, key, strlen(key)) == FALSE);

@@ -56,6 +56,7 @@ typedef struct bucket_st {
   void *key;
   void *value;
   size_t key_size;
+  size_t value_size;
   struct bucket_st *next;
 } bucket_st;
 
@@ -93,7 +94,7 @@ enum bool {
 
 
 
-hash_map_st* hm_init(const size_t size, uint32_t (* const hash_fp)(const void *));
+hash_map_st* hm_init(uint32_t (* const hash_fp)(const void *));
 void hm_free(hash_map_st *map);
 int hm_exists(const hash_map_st *map, const void *key, const size_t size);
 int hm_insert(hash_map_st *map, const void *key, const size_t k, const void *val, const size_t v);
